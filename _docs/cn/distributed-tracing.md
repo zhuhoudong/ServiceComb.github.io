@@ -68,6 +68,33 @@ last_modified_at: 2017-09-03T10:01:43-04:00
    mvn spring-boot:run -Ptracing
    ```
 
+4. 在docker容器环境下运行 *体质指数计算器* 微服务和*体质指数界面* 微服务：
+
+   上述2.和 3.提供的是在非docker容器中运行的方式。下面介绍如何在docker容器中运行的方法。
+
+   4.1 打包镜像和运行*体质指数计算器* 微服务
+
+   假设zipkin在虚拟机192.168.100.101的9411中运行。
+
+   ```bash
+   dockerfile:
+   FROM anapsix/alpine-java:latest
+   ADD bmi-calculator-0.3.0-SNAPSHOT.jar /bmi-calculator-tracing.jar
+   EXPOSE 7781
+   ENTRYPOINT java $JAVA_OPTS -jar bmi-calculator-tracing.jar "-Ptracing"
+   ```bash
+   打包image文件：
+   root@i-wzmhsx68:/home/ubuntu/docker/bmi-calculator-tracing# ls
+   bmi-calculator-0.3.0-SNAPSHOT.jar  dockerfile
+   root@i-wzmhsx68:/home/ubuntu/docker/bmi-calculator-tracing# docker build -t="bmi-calculator-tracing" .
+   ```bash
+   运行docker容器：
+   docker run -d -e JAVA_OPTS="-Dservicecomb.tracing.collector.address=http://192.168.100.101:9411" bmi-calculator-tracing
+   
+   4.2 打包镜像和运行*体质指数页面* 微服务
+   
+   用同样的方法打包镜像和运行*体质指数页面* 微服务。重新编写dokerfile，编译jar文件以及打包和运行docker镜像文件（注意将4.1中的bmi-calculator替换为bmi-webapp）。
+
 ## 验证
 
 1. 访问 <a>http://localhost:8888</a> ，在身高和体重栏处输入正数，并点击 *Submit* 按钮。
